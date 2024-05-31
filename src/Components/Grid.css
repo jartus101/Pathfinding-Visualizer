@@ -1,0 +1,9 @@
+.Node {
+    padding: 20px;
+    background-color: white;
+    border-radius: 3px;
+}
+
+.label {
+  font-size: 11px; 
+}
