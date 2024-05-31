@@ -1,25 +1,17 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { useState } from 'react';
+import Grid from './Components/Grid'
+import './App.css'
+import Node from './Components/Node'
+import { blueGrey } from '@mui/material/colors';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className = "App">
+      <Grid rows={15} cols={25}></Grid>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
