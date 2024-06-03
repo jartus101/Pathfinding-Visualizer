@@ -1,3 +1,81 @@
+
+// User defined class
+// to store element and its priority
+class QElement {
+    constructor(element, priority)
+    {
+        this.element = element;
+        this.priority = priority;
+    }
+}
+ 
+class PriorityQueue {
+    constructor()
+    {
+        this.items = [];
+    }
+    
+    enqueue(item, priority) {
+        let qElement = new QElement(item, priority);
+
+        this.items.push(qElement);
+        //qelement is now at the end
+        //bubble down to correct position
+        for (let i = this.items.length - 1; i > 0; i--) {
+            if (this.items[i].priority < this.items[i - 1].priority) {
+                let temp = this.items[i];
+                this.items[i] = this.items[i - 1];
+                this.items[i - 1] = temp;
+            } else {
+                break;
+            }
+        }
+    }
+
+    dequeue() {
+        if (this.isEmpty()) {
+            return "empty";
+        }
+        return this.items.shift().element;
+    }
+
+    front() {
+        if (this.isEmpty())
+            return "empty";
+        return this.items[0];
+    }
+
+    isEmpty() {
+        return this.items.length == 0;
+    }
+
+    printPQueue() {
+        console.log(this.items);
+        return;
+    }
+
+    size() {
+        return this.items.length;
+    }
+
+    includes(item) {
+        for (let i = 0; i < this.items.length; i++) {
+            if (this.items[i].element == item) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+class DefaultMap {
+    constructor(defaultValue) {
+        return new Proxy({}, {
+            get: (target, name) => name in target ? target[name] : defaultValue
+        });
+    }
+}
+
 // Convert coordinates in string format to list of integers
 function coordsToLists(list) {
     return list.map((str) => {
@@ -122,9 +200,59 @@ export function DFS(grid, row, col, endx, endy) {
     return [[], Array.from(vis)]; // return an empty path if there is no valid path
 }
 
-var grid = [[0, 0, 0, 0],
-            [1, 1, 0, 0],
-            [0, 0, 0, 1],
-            [0, 1, 0, 0]]
-// Function call
-console.log(DFS(grid, 0, 0, 3, 3));
+function manhattanDistance(x1, y1, x2, y2) {
+    return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+}
+
+function reconstructPath(closedSet, curr) {
+    var path = [];
+    while (curr !== undefined) {
+        path.push(curr);
+        curr = closedSet[curr];
+    }
+    path.reverse();
+    return path;
+}
+
+export function AStar(grid, row, col, endx, endy) {
+    const directions = [[-1, 0], [0, 1], [1, 0], [0, -1]];
+
+    const openSet = new PriorityQueue();
+    openSet.enqueue([row, col], 0);
+
+    const cameFrom = {};
+
+    const considered = [];
+
+    const gScore = new DefaultMap(Infinity);
+    gScore[[row, col]] = 0;
+
+    var fScore = new DefaultMap(Infinity);
+    fScore[[row, col]] = manhattanDistance(row, col, endx, endy);
+
+    while (openSet.size() > 0) {
+        let curr = openSet.dequeue();
+        considered.push(curr);
+        if (curr[0] == endx && curr[1] == endy) {
+            return [reconstructPath(cameFrom, curr), considered];
+        }
+
+        for (let i = 0; i < directions.length; i++) {
+            let currGScore = gScore[curr] + 1;
+            let neighbor = [curr[0] + directions[i][0], curr[1] + directions[i][1]];
+            if (!isValid(grid, new Set(), neighbor[0], neighbor[1])) {
+                continue;
+            }
+            if (currGScore < gScore[neighbor]) {
+                cameFrom[neighbor] = curr;
+                gScore[neighbor] = currGScore;
+                fScore[neighbor] = currGScore + manhattanDistance(neighbor[0], neighbor[1], endx, endy);
+                if (!openSet.includes(neighbor)) {
+                    openSet.enqueue(neighbor, fScore[neighbor]);
+                }
+            }
+        }
+    }
+    
+    return [[], considered];
+}

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './Grid.css';
 import Node from './Node';
-import { cyan, teal, grey, red } from '@mui/material/colors';
-import {BFS, DFS} from './Algorithms.js'
+import { cyan, teal, grey, red, green } from '@mui/material/colors';
+import {BFS, DFS, AStar} from './Algorithms.js'
 
 const Grid = ({ rows, cols }) => {
   const initialGrid = Array.from({ length: rows }, () =>
@@ -11,7 +11,7 @@ const Grid = ({ rows, cols }) => {
 
   //VARIABLES
   const [grid, setGrid] = useState(initialGrid);
-  const algorithms = ["dfs", "bfs", "astar"];
+  const [algorithm, setAlgorithm] = useState("DFS");
   const mazeAlgos = [];
   const [startx, setStartX] = useState(0);
   const [starty, setStartY] = useState(0);
@@ -54,9 +54,14 @@ const Grid = ({ rows, cols }) => {
     }
   };
 
+  const chooseAlgorithm = (event) => {
+    setAlgorithm(event.target.value);
+  }
+
   //use bfs in ./Algorithms.js to render the output
   const renderAlgorithm = (alg) => {
     clearPaths();
+    const algorithmMap = {"DFS": DFS, "BFS": BFS, "ASTAR": AStar};
     let delay = 0;
     const helper = grid.map((row, i) => {
       return row.map((color, j) => {
@@ -68,8 +73,7 @@ const Grid = ({ rows, cols }) => {
       })
     })
 
-    let bfs = BFS(helper, 7, 0, 7, 24);
-    console.log(bfs)
+    let bfs = algorithmMap[algorithm](helper, startx, starty, endx, endy);
     const path = bfs[0];
     if (path == []) {
       for (let i = 0; i < visited.length; i++) {
@@ -106,22 +110,83 @@ const Grid = ({ rows, cols }) => {
     }
   }
 
+  const [inputs, setInputs] = useState({});
+
+  const handleChange = (event) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setInputs(values => ({...values, [name]: value}))
+  }
+
+  const chooseStartAndEnd = (event) => {
+    event.preventDefault();
+    let start = inputs.start;
+    let end = inputs.end;
+    if (start==end) {
+      alert("start and end cannot be the same");
+      return;
+    }
+
+    if (start.split(',').length-1==0 || start.split(',').length-1>1 || end.split(',').length-1==0 || end.split(',').length-1>1) {
+      alert("Invalid Input. Try something like '0,0'");
+      return;
+    }
+    let startCoords = start.split(",");
+    let endCoords = end.split(",");
+
+    visitNode(startx, starty, grey[0])
+    visitNode(endx, endy, grey[0])
+
+    let newStartX = parseInt(startCoords[0]);
+    let newStartY = parseInt(startCoords[1]);
+    let newEndX = parseInt(endCoords[0]);
+    let newEndY = parseInt(endCoords[1]);
+
+    if (newStartX < 0 || newStartX >= rows || newStartY < 0 || newStartY >= cols || newEndX < 0 || newEndX >= rows || newEndY < 0 || newEndY >= cols) {
+      alert("Invalid Coordinates. Out of bounds.");
+      return;
+    }
+
+    setStartX(newStartX);
+    setStartY(newStartY);
+    visitNode(newStartX, newStartY, green[500]);
+
+    setEndX(newEndX);
+    setEndY(newEndY);
+    visitNode(newEndX, newEndY, red[500]);
+  }
+
   return (
     <div>
       <div>
         <button onClick={clearBoard}>Clear Grid</button>
         <label className={"label"}> CHOOSE ALGORITHM:
-          <select>
-            <option>DFS</option>
-            <option>BFS</option>
-            <option>ASTAR</option>
+          <select onChange={chooseAlgorithm}>
+            <option value="DFS">DFS</option>
+            <option value="BFS">BFS</option>
+            <option value="ASTAR">A*</option>
           </select>
         </label>
         <button onClick={renderAlgorithm}>Render Algorithm</button>
-        <button>Choose Start</button>
-        <input></input>
-        <button>Choose End</button>
-        <input></input>
+        <form onSubmit={chooseStartAndEnd}>
+          <label>Choose Start Coordinates (i,j):
+          <input 
+            type="text" 
+            name="start" 
+            value={inputs.start || ""} 
+            onChange={handleChange}
+          />
+          </label>
+          <label>Choose End Coordinates (i,j):
+            <input 
+              type="text"
+              name="end"
+              value={inputs.end || ""} 
+              onChange={handleChange}
+            />
+            </label>
+            <input type="submit" />
+        </form>
         <button>Generate Maze</button>
       </div>
       
